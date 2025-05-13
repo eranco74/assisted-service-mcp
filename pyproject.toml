@@ -1,0 +1,44 @@
+[project]
+name = "assisted-service-mcp"
+version = "0.1.0"
+description = "MCP server for OpenShift Assisted Service"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aicli>=99.0.202504021717",
+    "mcp[cli]>=1.8.0",
+    "python-dotenv>=1.0.0",  # For environment variable management
+    "aiohttp>=3.9.0",       # For async HTTP requests
+    "typing-extensions>=4.8.0",  # For enhanced type hints
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
