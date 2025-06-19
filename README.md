@@ -71,3 +71,67 @@ When configuring your MCP client, add the `OCM-Offline-Token` header:
 
 4. Ask about your clusters:
 ![Example prompt asking about a cluster](images/cluster-prompt-example.png)
+
+## Available Tools
+
+The MCP server provides the following tools for interacting with the OpenShift Assisted Installer:
+
+### Cluster Management
+
+* **list_clusters** - Lists all of the current user's assisted installer clusters. Returns minimal cluster information.
+
+* **cluster_info** - Get detailed information about the assisted installer cluster with the given ID
+  * `cluster_id`: Cluster ID (string, required)
+
+* **create_cluster** - Create a new assisted installer cluster and infraenv. Set single_node to true only for single node clusters or when high availability is not needed. Returns cluster ID and infraenv ID as JSON.
+  * `name`: Cluster name (string, required)
+  * `version`: OpenShift version (string, required)
+  * `base_domain`: Base domain for the cluster (string, required)
+  * `single_node`: Whether to create a single node cluster (boolean, required)
+
+* **install_cluster** - Trigger installation for the assisted installer cluster with the given ID
+  * `cluster_id`: Cluster ID (string, required)
+
+* **set_cluster_vips** - Set the API and ingress virtual IP addresses (VIPs) for the cluster
+  * `cluster_id`: Cluster ID (string, required)
+  * `api_vip`: API virtual IP address (string, required)
+  * `ingress_vip`: Ingress virtual IP address (string, required)
+
+### Events and Monitoring
+
+* **cluster_events** - Get the events related to a cluster with the given ID
+  * `cluster_id`: Cluster ID (string, required)
+
+* **host_events** - Get the events related to a specific host within a cluster
+  * `cluster_id`: Cluster ID (string, required)
+  * `host_id`: Host ID (string, required)
+
+### Infrastructure Environment
+
+* **infraenv_info** - Get detailed information about the assisted installer infra env with the given ID. Contains data like ISO download URL and infra env metadata.
+  * `infraenv_id`: Infrastructure environment ID (string, required)
+
+### Host Management
+
+* **set_host_role** - Update a host to a specific role. Role options are: 'auto-assign', 'master', 'arbiter', 'worker'
+  * `host_id`: Host ID (string, required)
+  * `infraenv_id`: Infrastructure environment ID (string, required)
+  * `role`: Host role (string, required)
+
+### OpenShift Versions and Operators
+
+* **list_versions** - Lists the available OpenShift versions for installation with the assisted installer
+
+* **list_operator_bundles** - Lists the operator bundles that can be optionally added to a cluster during installation
+
+* **add_operator_bundle_to_cluster** - Request an operator bundle to be installed with the given cluster
+  * `cluster_id`: Cluster ID (string, required)
+  * `bundle_name`: Operator bundle name (string, required)
+
+### Usage Examples
+
+- **List all clusters**: "Show me all my clusters"
+- **Get cluster details**: "Give me detailed information about cluster abc123"
+- **Create a cluster**: "Create a new cluster named 'my-cluster' with OpenShift 4.14 and base domain 'example.com'"
+- **Check cluster events**: "What events happened on cluster abc123?"
+- **Install a cluster**: "Start the installation for cluster abc123"
