@@ -57,7 +57,7 @@ For automatic token management with Red Hat SSO:
 **For detailed OAuth setup instructions, see [OAUTH_SETUP.md](OAUTH_SETUP.md)**
 
 ### Option 3: OCM-Offline-Token Header
-#### Note: this option is avilable when Oauth is disabled 
+#### Note: this option is available only when OAuth is disabled 
 
 1. **Get your OpenShift API token** from https://cloud.redhat.com/openshift/token
 
@@ -80,9 +80,9 @@ For automatic token management with Red Hat SSO:
     }
 ```
 
-##Advanced Transport Options
+## Advanced Transport Options
 
-The recomended transport is streamable-http as showen in the examples above
+The recommended transport is streamable-http as shown in the examples above.
 Other transport methods or detailed configuration:
 
 **Configure the server** depending on your preferred transport:
@@ -135,7 +135,7 @@ The server supports multiple authentication methods with automatic priority hand
 1. **Authorization Header** - `Bearer <token>` in request headers
 2. **OAuth Flow** (when `OAUTH_ENABLED=true`) - Automatic browser-based authentication
 3. **Environment Variable** - `OFFLINE_TOKEN` environment variable
-3. **OCM-Offline-Token Header** - `OCM-Offline-Token <token>` in request headers 
+4. **OCM-Offline-Token Header** - `OCM-Offline-Token: <token>` in request headers 
 
 ### OAuth Benefits (Advanced Users)
 

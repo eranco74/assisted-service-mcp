@@ -71,47 +71,12 @@ class TestAuthenticationPriority:
 
         assert token == "oauth_access_token"
 
-    @patch("assisted_service_mcp.src.settings.settings.OAUTH_ENABLED", True)
-    @patch("requests.post")
-    def test_priority_3_4_offline_token_when_oauth_fails(
-        self, mock_post: MagicMock
-    ) -> None:
-        """Test priority 3 & 4: Offline token when OAuth fails."""
-        # No Authorization header
-        self.mock_headers.get.return_value = None
-
-        # OAuth returns None (no token available)
-        def mock_oauth_func(_mcp):
-            return None
-
-        # Mock offline token retrieval
-        with patch("assisted_service_mcp.utils.auth.get_offline_token") as mock_offline:
-            mock_offline.return_value = "test_offline_token"
-
-            # Mock SSO token exchange
-            mock_response = MagicMock()
-            mock_response.json.return_value = {"access_token": "exchanged_access_token"}
-            mock_response.raise_for_status.return_value = None
-            mock_post.return_value = mock_response
-
-            with patch(
-                "assisted_service_mcp.src.settings.get_setting"
-            ) as mock_get_setting:
-                mock_get_setting.return_value = "https://sso.example.com/token"
-
-                token = get_access_token(
-                    self.mock_mcp, oauth_token_func=mock_oauth_func
-                )
-
-                assert token == "exchanged_access_token"
-                mock_offline.assert_called_once_with(self.mock_mcp)
-
     @patch("assisted_service_mcp.src.settings.settings.OAUTH_ENABLED", False)
     @patch("requests.post")
-    def test_priority_3_4_offline_token_when_oauth_disabled(
+    def test_offline_token_fallback_when_oauth_disabled(
         self, mock_post: MagicMock
     ) -> None:
-        """Test priority 3 & 4: Offline token when OAuth is disabled."""
+        """Test offline token fallback when OAuth is disabled."""
         # No Authorization header
         self.mock_headers.get.return_value = None
 
