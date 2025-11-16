@@ -76,6 +76,10 @@ def test_get_access_token_sso_request_exception() -> None:
     with (
         patch("assisted_service_mcp.utils.auth.requests.post") as mock_post,
         patch(
+            "assisted_service_mcp.utils.auth.get_offline_token",
+            return_value="offline-token",
+        ),
+        patch(
             "assisted_service_mcp.utils.auth.get_setting",
             side_effect=lambda k: "https://sso.example.com" if k == "SSO_URL" else "",
         ),
@@ -84,7 +88,7 @@ def test_get_access_token_sso_request_exception() -> None:
         with pytest.raises(
             RuntimeError, match="Failed to obtain access token from SSO"
         ):
-            mod.get_access_token(mcp, offline_token_func=lambda: "offline")
+            mod.get_access_token(mcp)
 
 
 def test_get_access_token_invalid_json_response() -> None:
@@ -99,9 +103,13 @@ def test_get_access_token_invalid_json_response() -> None:
     with (
         patch("assisted_service_mcp.utils.auth.requests.post", return_value=mock_resp),
         patch(
+            "assisted_service_mcp.utils.auth.get_offline_token",
+            return_value="offline-token",
+        ),
+        patch(
             "assisted_service_mcp.utils.auth.get_setting",
             side_effect=lambda k: "https://sso.example.com" if k == "SSO_URL" else "",
         ),
     ):
         with pytest.raises(RuntimeError, match="Invalid SSO response"):
-            mod.get_access_token(mcp, offline_token_func=lambda: "offline")
+            mod.get_access_token(mcp)
