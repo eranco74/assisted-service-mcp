@@ -87,7 +87,23 @@ class AssistedServiceMCPServer:
                 client_id = self._get_mcp_client_identifier(mcp)
 
                 # Check if we have a completed OAuth token for this client
-                token = oauth_manager.token_store.get_access_token_by_client(client_id)
+                # Use the oauth_manager method which handles refresh if needed
+                # Since we're in a sync context, we need to run the async method
+                try:
+                    asyncio.get_running_loop()
+                    # If we're here, we're already in an event loop
+                    # This shouldn't happen as we're called via asyncio.to_thread
+                    log.error("Unexpected: get_oauth_token called within event loop")
+                    # Fall back to non-refreshing method
+                    token = oauth_manager.token_store.get_access_token_by_client(
+                        client_id
+                    )
+                except RuntimeError:
+                    # No running loop, we can safely use asyncio.run
+                    token = asyncio.run(
+                        oauth_manager.get_access_token_by_client(client_id)
+                    )
+
                 if token:
                     log.info("Using cached OAuth token for MCP client %s", client_id)
                     return token
