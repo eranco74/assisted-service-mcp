@@ -106,6 +106,34 @@ class Settings(BaseSettings):
         },
     )
 
+    # OAuth Configuration
+    OAUTH_ENABLED: bool = Field(
+        default=False,
+        json_schema_extra={
+            "env": "OAUTH_ENABLED",
+            "description": "Enable OAuth 2.1 authentication flow",
+            "example": False,
+        },
+    )
+
+    OAUTH_CLIENT_ID: str = Field(
+        default="cloud-services",
+        json_schema_extra={
+            "env": "OAUTH_CLIENT_ID",
+            "description": "OAuth client ID for Red Hat SSO",
+            "example": "cloud-services",
+        },
+    )
+
+    SSO_AUTH_URL: str = Field(
+        default="https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/auth",
+        json_schema_extra={
+            "env": "SSO_AUTH_URL",
+            "description": "SSO authorization endpoint URL",
+            "example": "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/auth",
+        },
+    )
+
     # Logging Configuration
     LOGGING_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
         default="INFO",

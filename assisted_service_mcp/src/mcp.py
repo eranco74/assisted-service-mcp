@@ -3,14 +3,19 @@
 import asyncio
 import inspect
 from functools import wraps
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Optional
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.auth.settings import AuthSettings, ClientRegistrationOptions
+from pydantic import AnyHttpUrl
 from assisted_service_mcp.src.logger import log
 
 # Import auth utilities
 from assisted_service_mcp.utils.auth import get_offline_token, get_access_token
 from assisted_service_mcp.src.settings import settings
+
+# Import OAuth components
+from assisted_service_mcp.src.oauth import RedHatSSOProvider, OAuthStorage
 
 # Import all tool modules
 from assisted_service_mcp.src.tools import (
@@ -37,12 +42,64 @@ class AssistedServiceMCPServer:
             # Get transport configuration from settings
             use_stateless_http = settings.TRANSPORT == "streamable-http"
 
-            # Initialize FastMCP server
-            self.mcp = FastMCP(
-                "AssistedService",
-                host=settings.MCP_HOST,
-                stateless_http=use_stateless_http,
-            )
+            # Initialize OAuth provider if enabled
+            oauth_provider: Optional[RedHatSSOProvider] = None
+            if settings.OAUTH_ENABLED:
+                log.info("OAuth authentication enabled")
+                # Construct callback URL
+                protocol = (
+                    "https"
+                    if settings.MCP_HOST not in ["localhost", "127.0.0.1", "0.0.0.0"]
+                    else "http"
+                )
+                host_for_url = (
+                    "127.0.0.1" if settings.MCP_HOST == "0.0.0.0" else settings.MCP_HOST
+                )
+                callback_url = (
+                    f"{protocol}://{host_for_url}:{settings.MCP_PORT}/oauth/callback"
+                )
+
+                # Create OAuth storage and provider
+                oauth_storage = OAuthStorage()
+                oauth_provider = RedHatSSOProvider(oauth_storage, callback_url)
+
+                log.info(
+                    "OAuth provider initialized with callback URL: %s", callback_url
+                )
+
+            # Initialize FastMCP server with optional OAuth provider
+            fastmcp_kwargs: dict[str, Any] = {
+                "name": "AssistedService",
+                "host": settings.MCP_HOST,
+                "stateless_http": use_stateless_http,
+            }
+
+            if oauth_provider:
+                fastmcp_kwargs["auth_server_provider"] = oauth_provider
+                # Configure OAuth auth settings
+                protocol = (
+                    "https"
+                    if settings.MCP_HOST not in ["localhost", "127.0.0.1", "0.0.0.0"]
+                    else "http"
+                )
+                host_for_url = (
+                    "127.0.0.1" if settings.MCP_HOST == "0.0.0.0" else settings.MCP_HOST
+                )
+                issuer_url = AnyHttpUrl(
+                    f"{protocol}://{host_for_url}:{settings.MCP_PORT}"
+                )
+                resource_server_url = issuer_url
+
+                auth_settings = AuthSettings(
+                    issuer_url=issuer_url,
+                    resource_server_url=resource_server_url,
+                    client_registration_options=ClientRegistrationOptions(enabled=True),
+                )
+                fastmcp_kwargs["auth"] = auth_settings
+
+            self.mcp = FastMCP(**fastmcp_kwargs)
+            self.oauth_provider = oauth_provider
+
             # Define auth helpers bound to this MCP instance
             self._get_offline_token = lambda: get_offline_token(self.mcp)
             self._get_access_token = lambda: get_access_token(
